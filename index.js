@@ -124,18 +124,20 @@ app.put('/userPosting/:id', async (req, res) => {
 //     });
 // })
 // get Zonal  
-app.get('/zonals', async (req, res) => {
+app.get('/zonals/:pbs_code', async (req, res) => {
+    const pbs_code = req.params.pbs_code;
     const sqlSelect =
-        "SELECT * FROM tbl_zonal where pbs_code=29";
-    db.query(sqlSelect, (err, result) => {
+        "SELECT * FROM tbl_zonal where pbs_code=?";
+    db.query(sqlSelect, [pbs_code], (err, result) => {
         res.send(result);
     });
 });
 // get CC  
-app.get('/ccs', async (req, res) => {
+app.get('/ccs/:zonal_code', async (req, res) => {
+    const zonal_code = req.params.zonal_code;
     const sqlSelect =
-        "SELECT * FROM tbl_cc where zonal_code=2902";
-    db.query(sqlSelect, (err, result) => {
+        "SELECT * FROM tbl_cc where zonal_code=?";
+    db.query(sqlSelect, [zonal_code], (err, result) => {
         res.send(result);
     });
 });
@@ -241,7 +243,7 @@ app.post('/cashAdd', async (req, res) => {
 app.get('/collections', async (req, res) => {
     // const bookNo = req.params.bookNo;
     const sqlSelect =
-        "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE MONTH(cdate) = MONTH(CURRENT_TIMESTAMP) AND YEAR(cdate) = YEAR(CURRENT_TIMESTAMP)";
+        "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE MONTH(cdate) = MONTH(CURRENT_TIMESTAMP) AND YEAR(cdate) = YEAR(CURRENT_TIMESTAMP)";
     db.query(sqlSelect, (err, result) => {
         res.send(result);
     });
@@ -249,6 +251,71 @@ app.get('/collections', async (req, res) => {
     // const cursor = cashCollection.find(query);
     // const users = await cursor.toArray();
     // res.send(users);
+});
+// get Collection  By Date
+app.get('/Collection', async (req, res) => {
+    const pbs_code = req.query.pbs_code;
+    const zonal_code = req.query.zonal_code;
+    const cc_code = req.query.cc_code;
+    const bookNo = req.query.bookNo;
+    const dateFrom = req.query.dateFrom;
+    const dateTo = req.query.dateTo;
+    const assign_to = req.query.assign_to;
+    const collected_by = req.query.collected_by;
+    console.log(zonal_code, zonal_code, cc_code, bookNo, dateFrom, dateTo, assign_to, collected_by);
+    let sqlSelect = '';
+    if (zonal_code && bookNo && assign_to && collected_by && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.zonal_code=? and dnp_collection.bookNo=? and dnp_collection.assign_to=? and dnp_collection.collected_by=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [zonal_code, bookNo, assign_to, collected_by, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (zonal_code && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.zonal_code=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [zonal_code, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (zonal_code && assign_to && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.zonal_code=? and dnp_collection.assign_to=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [zonal_code, assign_to, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (zonal_code && collected_by && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.zonal_code=? and dnp_collection.collected_by=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [zonal_code, collected_by, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (pbs_code && assign_to && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.pbs_code=? and dnp_collection.assign_to=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [pbs_code, assign_to, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (pbs_code && collected_by && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.pbs_code=? and dnp_collection.collected_by=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [pbs_code, collected_by, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+
+    else if (pbs_code && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.pbs_code=? AND  cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [pbs_code, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+
+
 });
 app.listen(port, () => {
     console.log(`Office Info app listening on port ${port}`)

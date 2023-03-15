@@ -180,6 +180,16 @@ app.get('/bookbyId/:id', async (req, res) => {
         res.send(result);
     });
 })
+// get single Book  by bookno
+app.get('/book/:bookNo', async (req, res) => {
+    const bookNo = req.params.bookNo;
+    const sqlSelect =
+
+        "SELECT * FROM book_information  INNER JOIN users ON book_information.assign_to = users.trg_id INNER JOIN tbl_zonal ON book_information.zonal_code = tbl_zonal.zonal_code INNER JOIN tbl_cc ON book_information.cc_code = tbl_cc.cc_code WHERE book_information.bookNo=?";
+    db.query(sqlSelect, [bookNo], (err, result) => {
+        res.send(result);
+    });
+})
 // Update Book 
 
 app.put('/book/:id', async (req, res) => {
@@ -202,16 +212,44 @@ app.put('/book/:id', async (req, res) => {
         console.log(result.affectedRows + " record(s) updated");
         // res.send({ err });
     });
-    // const newBook = req.body;
-    // const filter = { _id: ObjectId(id) };
-    // const options = { upsert: true };
-    // const updatedDoc = {
-    //     $set:
-    //         newBook
-    // }
-    // const product = await bookCollection.updateOne(filter, updatedDoc, options);
-    // res.send(product);
+
 })
+// cash Collection 
+app.post('/cashAdd', async (req, res) => {
+    const bookNo = req.body.bookNo;
+    const pbs_code = req.body.pbs_code;
+    const zonal_code = req.body.zonal_code;
+    const cc_code = req.body.cc_code;
+    const NumOfCashCollection = req.body.NumOfCashCollection;
+    const AmountOfCashCollection = req.body.AmountOfCashCollection;
+    const NumOfOtherCollection = req.body.NumOfOtherCollection;
+    const AmmountOfOtherCollection = req.body.AmmountOfOtherCollection;
+    const NumOfDC = req.body.NumOfDC;
+    const AmmountOfDC = req.body.AmmountOfDC;
+    const assign_to = req.body.assign_to;
+    const collected_by = req.body.collected_by;
+    const cdate = req.body.cdate;
+    const entered_by = req.body.entered_by;
+
+    const sqlInsert =
+        "INSERT INTO dnp_collection (bookNo,pbs_code,zonal_code,cc_code,NumOfCashCollection,AmountOfCashCollection,NumOfOtherCollection,AmmountOfOtherCollection,NumOfDC,AmmountOfDC,assign_to,collected_by,cdate,today,entered_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?, CURRENT_TIMESTAMP,?)";
+    db.query(sqlInsert, [bookNo, pbs_code, zonal_code, cc_code, NumOfCashCollection, AmountOfCashCollection, NumOfOtherCollection, AmmountOfOtherCollection, NumOfDC, AmmountOfDC, assign_to, collected_by, cdate, entered_by], (err, result) => {
+        res.send(result);
+    });
+});
+// get Collection  
+app.get('/collections', async (req, res) => {
+    // const bookNo = req.params.bookNo;
+    const sqlSelect =
+        "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE MONTH(cdate) = MONTH(CURRENT_TIMESTAMP) AND YEAR(cdate) = YEAR(CURRENT_TIMESTAMP)";
+    db.query(sqlSelect, (err, result) => {
+        res.send(result);
+    });
+    // const query = {};
+    // const cursor = cashCollection.find(query);
+    // const users = await cursor.toArray();
+    // res.send(users);
+});
 app.listen(port, () => {
     console.log(`Office Info app listening on port ${port}`)
 })

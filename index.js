@@ -12,9 +12,9 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = mysql.createPool({
-    host: '127.0.0.1',
-    user: 'root',
-    password: '12345',
+    host: 'db4free.net',
+    user: 'pbsofficeinfo',
+    password: 'CPBS2@o29',
     database: 'pbsofficeinfo',
 });
 
@@ -264,7 +264,14 @@ app.get('/Collection', async (req, res) => {
     const collected_by = req.query.collected_by;
     console.log(zonal_code, zonal_code, cc_code, bookNo, dateFrom, dateTo, assign_to, collected_by);
     let sqlSelect = '';
-    if (zonal_code && bookNo && assign_to && collected_by && dateFrom && dateTo) {
+    if (cc_code && dateFrom && dateTo) {
+        sqlSelect =
+            "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.cc_code=? AND cdate BETWEEN(?) AND (?)";
+        db.query(sqlSelect, [cc_code, dateFrom, dateTo], (err, result) => {
+            res.send(result);
+        });
+    }
+    else if (zonal_code && bookNo && assign_to && collected_by && dateFrom && dateTo) {
         sqlSelect =
             "SELECT dnp_collection.id,dnp_collection.bookNo,dnp_collection.NumOfCashCollection,dnp_collection.AmountOfCashCollection,dnp_collection.NumOfOtherCollection,dnp_collection.AmmountOfOtherCollection,dnp_collection.NumOfDC,dnp_collection.AmmountOfDC,dnp_collection.cdate,users.displayName FROM dnp_collection INNER JOIN users ON users.id = dnp_collection.collected_by WHERE dnp_collection.zonal_code=? and dnp_collection.bookNo=? and dnp_collection.assign_to=? and dnp_collection.collected_by=? AND  cdate BETWEEN(?) AND (?)";
         db.query(sqlSelect, [zonal_code, bookNo, assign_to, collected_by, dateFrom, dateTo], (err, result) => {

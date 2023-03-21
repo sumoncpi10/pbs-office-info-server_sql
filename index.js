@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+require('dotenv').config();
 const app = express();
 const mysql = require("mysql");
 
@@ -13,8 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = mysql.createPool({
     host: 'db4free.net',
-    user: 'pbsofficeinfo',
-    password: 'CPBS2@o29',
+    user: `${process.env.DB_USER}`,
+    password: `${process.env.DB_PASS}`,
     database: 'pbsofficeinfo',
 });
 

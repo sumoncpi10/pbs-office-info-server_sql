@@ -6,6 +6,7 @@ require('dotenv').config();
 const app = express();
 const mysql = require("mysql");
 
+
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -325,6 +326,6 @@ app.get('/Collection', async (req, res) => {
 
 
 });
-app.listen(port, () => {
-    console.log(`Office Info app listening on port ${port}`)
-})
+// app.listen(port, () => {
+//     console.log(`Office Info app listening on port ${port}`)
+// })
